@@ -56,12 +56,15 @@ This project was built from the ground up, scaling from a simple content manager
 
 ### 1. Prerequisites
 
-Install the following:
+You must have the following software installed on your machine:
 
-- Python 3.11+
-- PostgreSQL 12+
-- Redis 5.0+  
-  _Windows Note: Use Redis 5.0.14.1 MSI installer for compatibility._
+Python (v3.11+)
+
+PostgreSQL (v12+): The main application database.
+
+Redis (v5.0+): The message broker.
+
+Windows Note: Use the Redis 5.0.14.1 MSI installer for compatibility. "https://github.com/tporadowski/redis/releases/tag/v5.0.14.1"
 
 ---
 
