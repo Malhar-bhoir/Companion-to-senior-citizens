@@ -1,74 +1,99 @@
-# Companion-to-senior-citizens
-
-
+---
 
 # 🧓 Senior Companion Web Application
 
-A comprehensive, database-driven web application built with Django, designed to combat loneliness and isolation among senior citizens. This platform provides a secure environment for social interaction, access to community resources, personalized content, and automated health reminders.
+A comprehensive, full-stack web application designed to empower senior citizens by combating isolation and simplifying daily management. It provides a secure, accessible platform for social connection, health management, cognitive stimulation, and personalized resource discovery.
 
-This project was built from the ground up, scaling from a simple content manager to an advanced, real-time application with background task processing.
+This project has evolved from a simple content manager into an advanced, real-time, AI‑enhanced platform with background task processing, games, and a built‑in smart assistant.
 
 ---
 
-## 🚀 Core Features
+## 🌟 Key Features
 
-- **Dual User System**  
-  Separate authentication and permissions for regular Seniors and content-managing Staff.
+### **1. Advanced User System**
+- **Dual Roles:** Seniors (simple UI) and Staff (content management dashboard)
+- **Secure Authentication:** Standard login/registration
+- **Personalized Profiles:** Seniors can set hobbies, emergency contacts, and home location for localized services
 
-- **Custom Staff Dashboard**  
-  A secure, minimalistic admin panel (separate from Django `/admin`) for staff to manage site content.
+---
 
-- **Content Management System (CMS)**  
-  Full CRUD for:
-  - Places to Visit
-  - Learning Resources
-  - Hospitals & Doctors
-  - Insurance Policies
+### **2. Social Connection**
+- **Companions System:** Add/remove other seniors as companions  
+- **Real-Time Chat:** Private 1‑on‑1 chat using Django Channels + WebSockets
 
-- **Personalized Homepage**  
-  Dynamically populated with events and resources based on user-selected hobbies.
+---
 
-- **"Companions" Social System**  
-  A friends list feature allowing users to add/remove other seniors.
+### **3. Health & Safety**
+- **Medication Reminders:** Automated email reminders using Celery + Redis  
+- **Emergency Hospital Finder:** Google Maps integration to locate 24/7 hospitals near the user  
+- **Doctor Directory:** Detailed doctor profiles with specialties, languages, and hospital affiliations
 
-- **Real-Time 1-on-1 Chat**  
-  Private chat rooms for companions using Django Channels and WebSockets.
+---
 
-- **Automated Medication Reminders**  
-  Background task system using Celery and Redis. Users can schedule multiple reminders. Celery Beat checks every minute and sends real email notifications via SMTP.
+### **4. Insurance Hub with AI**
+- **Policy Management:** Seniors can upload and track insurance policies  
+- **Expiry Alerts:** Daily Celery task checks for upcoming expiries  
+- **AI Recommendations:**  
+  A Machine Learning (Random Forest) model analyzes:
+  - Age  
+  - Income  
+  - Risk tolerance  
+  - Health factors  
+  …and recommends the best insurance tier and policy plan.
+
+---
+
+### **5. Cognitive Engagement (Games)**
+- **Curated Game Library:** Designed for mental stimulation  
+- **Memory Match:** High‑contrast, senior‑friendly memory card game  
+- **Classic Chess:** Play against a computer opponent  
+- **Progress Tracking:** Tracks wins, losses, and sessions
+
+---
+
+### **6. Learning & Resources**
+- **Resource Library:** Articles, videos, and tutorials on Tech, Health, Hobbies  
+- **Progress Tracking:** Mark resources as *In Progress*, *Completed*, or *Bookmarked*  
+- **Places to Visit:** Senior‑friendly directory of parks, museums, clubs with accessibility info
+
+---
+
+### **7. Smart Assistant (Chatbot)**
+- **Logic‑Based Chatbot:** Helps users navigate the app  
+  Examples:
+  - “How do I find a doctor?”
+  - “Play a game”
+  - “Show my insurance policies”
+- **Fallback to Admin:** Unanswered queries are stored and forwarded to staff  
+- **Rule Seeding:** Initial rules loaded via `seed_chatbot_rules` command
 
 ---
 
 ## 🧰 Tech Stack
 
-| Layer            | Tools & Libraries                                   |
-|------------------|-----------------------------------------------------|
-| Backend          | Django, Django Channels, Celery                     |
-| Database         | PostgreSQL                                          |
-| Message Broker   | Redis                                               |
-| ASGI Server      | Daphne                                              |
-| Frontend         | HTML5, CSS3, Bootstrap 5                            |
-| Python Packages  | `psycopg2-binary`, `python-dotenv`                  |
+| Layer | Tools & Libraries |
+|-------|-------------------|
+| Backend | Django 5.x, Python 3.11 |
+| Real-Time | Django Channels, Daphne (ASGI) |
+| Async Tasks | Celery, Redis |
+| Database | PostgreSQL |
+| AI/ML | Scikit-learn, Pandas, Joblib |
+| Frontend | HTML5, CSS3, Bootstrap 5, JavaScript |
+| Games | Chessboard.js, Chess.js |
 
 ---
 
 ## 🛠️ Local Development & Setup
 
-### 1. Prerequisites
-
-You must have the following software installed on your machine:
-
-Python (v3.11+)
-
-PostgreSQL (v12+): The main application database.
-
-Redis (v5.0+): The message broker.
-
-Windows Note: Use the Redis 5.0.14.1 MSI installer for compatibility. "https://github.com/tporadowski/redis/releases/tag/v5.0.14.1"
+### **1. Prerequisites**
+- Python 3.11+
+- PostgreSQL 12+
+- Redis 5.0+  
+  *(Windows users: install Redis 5.0.14.1 MSI)*
 
 ---
 
-### 2. Clone the Repository
+### **2. Clone the Repository**
 
 ```bash
 git clone https://github.com/your-username/senior-companion.git
@@ -77,120 +102,97 @@ cd senior-companion
 
 ---
 
-### 3. Set Up the Environment
+### **3. Set Up the Environment**
 
 ```bash
 python -m venv venv
-.\venv\Scripts\activate  # On Windows
-# source venv/bin/activate  # On Mac/Linux
+.\venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Mac/Linux
 
 pip install -r requirements.txt
 ```
 
 ---
 
-### 4. Set Up the Database
+### **4. Configuration**
 
-- Open pgAdmin 4 (or any SQL tool)
-- Create a new PostgreSQL database named `senior_companion_db`
-- Create a `.env` file in the project root and add:
+Create a `.env` file:
 
 ```env
-# --- .env file ---
 DB_NAME=senior_companion_db
 DB_USER=postgres
-DB_PASSWORD=your_postgres_password
+DB_PASSWORD=your_password
 DB_HOST=127.0.0.1
 DB_PORT=5432
 
 EMAIL_USER=your_email@gmail.com
-EMAIL_PASSWORD=your_16_digit_app_password
+EMAIL_PASSWORD=your_app_password
 ```
+
+✅ **ML Model:**  
+Place `rf_pipeline.joblib` inside the `ml_models/` folder.
 
 ---
 
-### 5. Initialize the Database
+### **5. Database Initialization**
 
 ```bash
 python manage.py migrate
 python manage.py createsuperuser
+python manage.py seed_chatbot_rules   # NEW
 ```
 
 ---
 
-### 6. One-Time Manual Setup (Celery Beat)
+### **6. Celery Beat Setup (One-Time)**
 
-1. Start the Django server:
-   ```bash
-   python manage.py runserver
-   ```
+In `/admin/` → **DJANGO_CELERY_BEAT**:
 
-2. Log in to the admin panel: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
-
-3. Scroll to **DJANGO_CELERY_BEAT** → Add a new **Periodic Task**:
-   - **Name**: Check Reminders Every Minute
-   - **Task**: `reminders.tasks.check_reminders`
-   - **Interval**: Add new → Every: `60`, Period: `Seconds`
+| Task | Interval |
+|------|----------|
+| `reminders.tasks.check_reminders` | Every 60 seconds |
+| `reminders.tasks.check_insurance_expiries` | Every 1 day |
 
 ---
 
-## 🧪 How to Run the Application
+## ▶️ How to Run (4-Terminal Setup)
 
-This project requires **4 terminals**:
-
-### Terminal 1: Redis Server
-
+### **Terminal 1 — Redis**
 ```bash
 redis-server --port 6380
 ```
 
-### Terminal 2: Django (Daphne) Server
-
+### **Terminal 2 — Django Server**
 ```bash
-.\venv\Scripts\activate
-cd senior_companion
 python manage.py runserver
 ```
 
-### Terminal 3: Celery Worker
-
+### **Terminal 3 — Celery Worker**
 ```bash
-.\venv\Scripts\activate
-cd senior_companion
 celery -A senior_companion_project worker -l INFO -P threads
 ```
 
-### Terminal 4: Celery Beat
-
+### **Terminal 4 — Celery Beat**
 ```bash
-.\venv\Scripts\activate
-cd senior_companion
 celery -A senior_companion_project beat -l INFO
 ```
 
----
-
-## 🌐 Access the App
-
-Visit: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+Access the app at:  
+**http://127.0.0.1:8000/**
 
 ---
 
-## 🧪 Application Usage
+## 📂 Project Structure
 
-- **Create Content**: Log in as superuser (`/admin/`) → Create Hobby objects  
-  Log in as Staff (`/dashboard/`) → Add Events, Places, etc.
+```
+senior_companion_project/   # Main settings
+users/                      # Auth, Profiles, Companions
+resources/                  # Hospitals, Insurance, Places, Learning, Games, ML logic
+chat/                       # WebSocket chat (Channels)
+reminders/                  # Celery tasks for medication & insurance
+chatbot/                    # Rule-based smart assistant
+templates/                  # Global templates
+ml_models/                  # Trained ML models
+```
 
-- **Test as Senior**: Register a normal user account
-
-- **Set Hobbies**: Go to "My Profile" → Select hobbies
-
-- **Test Personalization**: Homepage updates based on hobbies
-
-- **Test Social**: Register second senior → Add as Companion
-
-- **Test Chat**: Open two browsers → Chat via "Companions"
-
-- **Test Reminders**: Add a medication → Set reminder for 2–3 minutes later  
-  → Watch Terminal 3 logs and check your email inbox
-
+---
