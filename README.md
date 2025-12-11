@@ -90,6 +90,7 @@ This project has evolved from a simple content manager into an advanced, real-ti
 - PostgreSQL 12+
 - Redis 5.0+  
   *(Windows users: install Redis 5.0.14.1 MSI)*
+  Windows Note: Use the Redis 5.0.14.1 MSI installer for compatibility. "https://github.com/tporadowski/redis/releases/tag/v5.0.14.1"
 
 ---
 
