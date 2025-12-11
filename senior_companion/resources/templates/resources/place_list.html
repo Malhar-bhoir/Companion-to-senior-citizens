@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Places to Visit{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h1 class="mb-4">Places to Visit</h1>
+    <p class="lead text-muted mb-4">Here are some great places in your community, recommended by our staff.</p>
+
+    <!-- This is the container for our new card grid -->
+    <div class="row">
+        {% for place in places %}
+            <div class="col-md-6 col-lg-4 mb-4 d-flex align-items-stretch">
+                <!-- 
+                This is the Card, inspired by your image_0d7786.png.
+                'h-100' makes all cards in a row the same height.
+                -->
+                <div class="card place-card h-100 w-100">
+                    
+                    <!-- Card Image -->
+                    <div class="place-card-img-container">
+                        {% if place.main_image %}
+                            <img src="{{ place.main_image.url }}" class="card-img-top place-card-img" alt="{{ place.name }}">
+                        {% else %}
+                            <!-- Fallback placeholder image -->
+                            <img src="https://placehold.co/600x400/3D6B4C/fefcf9?text={{ place.name|truncatechars:15 }}" class="card-img-top place-card-img" alt="Placeholder">
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <h5 class="card-title">{{ place.name }}</h5>
+                        <p class="card-text text-muted">{{ place.description|truncatewords:20 }}</p>
+                    </div>
+
+                    <!-- Card Footer with Accessibility & Button -->
+                    <div class="card-footer bg-white border-top-0 pt-0">
+                        <!-- Accessibility Icons -->
+                        <div class="accessibility-icons mb-3">
+                            {% if place.is_wheelchair_accessible %}
+                                <span title="Wheelchair Accessible" class="bi-universal-access">&#9855;</span>
+                            {% endif %}
+                            {% if place.has_restrooms %}
+                                <span title="Restrooms Available" class="bi-person-standing-dress">&#128103;</span>
+                            {% endif %}
+                            {% if place.has_seating %}
+                                <span title="Seating Available" class="bi-person-wheelchair">&#9855;</span> <!-- Re-using icon, ideal is a bench icon -->
+                            {% endif %}
+                        </div>
+                        
+                        <!-- "View More" Button (from your idea) -->
+                        <a href="{% url 'place_detail' place.id %}" class="btn btn-primary w-100">View More</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <!-- This shows if no places have been added yet -->
+            <div class="col">
+                <div class="list-group-item p-4 mb-3" style="border-radius: 8px; border: 1px solid #eee;">
+                    <h4 class="mb-1">No Places Added Yet</h4>
+                    <p class="mb-0 fs-5 text-muted">Our staff is working on adding new places. Please check back soon!</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-4">&larr; Back to Home</a>
+</div>
+{% endblock %}

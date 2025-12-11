@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <div class="row">
+        <div class="col-md-8 col-lg-6 mx-auto">
+            <h1 class="mb-4">Create Your Account</h1>
+            <p>Sign up is fast and easy. Your email is your username.</p>
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
+                {{ form.as_p }}
+
+                <button type="submit" class="btn btn-primary w-100 mt-3">Create Account</button>
+            </form>
+
+            <hr class="my-4">
+            <p class="text-center">
+                Already have an account? <a href="{% url 'login' %}">Log In</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Dr. {{ doctor.name }}{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+
+    <div class="row align-items-center mb-5 border-bottom pb-4">
+        <div class="col-md-3 text-center">
+            {% if doctor.profile_photo %}
+                <img src="{{ doctor.profile_photo.url }}" alt="Dr. {{ doctor.name }}" class="img-fluid rounded-circle shadow" style="width: 150px; height: 150px; object-fit: cover;">
+            {% else %}
+                <!-- Placeholder Avatar -->
+                <i class="fas fa-user-md text-primary" style="font-size: 5rem;"></i>
+            {% endif %}
+        </div>
+        <div class="col-md-9">
+            <h1 class="mb-0">Dr. {{ doctor.name }}</h1>
+            <p class="lead text-primary fw-bold">{{ doctor.get_specialty_display }}</p>
+            <p class="text-muted mb-0">Affiliated with: 
+                {% if doctor.hospital_affiliation %}
+                    <a href="{% url 'hospital_detail' doctor.hospital_affiliation.id %}">{{ doctor.hospital_affiliation.name }}</a>
+                {% else %}
+                    None
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Professional Info -->
+        <div class="col-md-6 mb-4">
+            <h3 class="mb-3 text-primary"><i class="fas fa-user-circle me-2"></i>Professional Details</h3>
+            <p class="fs-5 mb-2"><strong>Experience:</strong> {{ doctor.years_experience }}+ Years</p>
+            <p class="fs-5 mb-2"><strong>Contact:</strong> <a href="tel:{{ doctor.contact_phone }}">{{ doctor.contact_phone }}</a></p>
+            <p class="fs-5 mb-2"><strong>Languages:</strong> {{ doctor.languages_spoken|default:"Not specified" }}</p>
+        </div>
+
+        <!-- Schedule & Location -->
+        <div class="col-md-6 mb-4">
+            <h3 class="mb-3 text-primary"><i class="fas fa-clock me-2"></i>Schedule & Hours</h3>
+            {% if doctor.visiting_hours %}
+                <p class="fs-5 mb-2">{{ doctor.visiting_hours|linebreaks }}</p>
+            {% else %}
+                <p class="fs-5 text-muted">Please call the office for current visiting hours.</p>
+            {% endif %}
+            
+            <button class="btn btn-primary mt-3"><i class="fas fa-heart me-2"></i> Add to Favorites (Future Feature)</button>
+        </div>
+    </div>
+
+    <hr class="my-4">
+    <a href="{% url 'hospital_detail' doctor.hospital_affiliation.id %}" class="btn btn-secondary btn-lg">&larr; Back to Hospital</a>
+</div>
+{% endblock %}

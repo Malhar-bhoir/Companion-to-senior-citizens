@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %} 
+
+{% block title %}Learning Resources{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h1 class="mb-4">Learning Resources Library</h1>
+    <p class="lead text-muted mb-4">A curated collection of guides, videos, and articles, tailored to your hobbies and interests.</p>
+
+    <!-- Search and Filter Form -->
+    <form method="GET" class="mb-5 p-4 border rounded-3 bg-light">
+        <div class="row g-3 align-items-center">
+            <!-- Search Bar -->
+            <div class="col-md-6">
+                <input type="text" name="q" class="form-control" placeholder="Search by Title or Keyword..." value="{{ query|default:'' }}">
+            </div>
+            
+            <!-- Type Filter -->
+            <div class="col-md-3">
+                <select name="content_type" class="form-select">
+                    <option value="">Filter by Type</option>
+                    {% for key, display in content_types %}
+                        <option value="{{ key }}" {% if content_type_filter == key %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Difficulty Filter -->
+            <div class="col-md-3">
+                <select name="difficulty" class="form-select">
+                    <option value="">Filter by Difficulty</option>
+                    {% for key, display in difficulties %}
+                        <option value="{{ key }}" {% if difficulty_filter == key %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                <a href="{% url 'learning_list' %}" class="btn btn-outline-secondary">Clear Filters</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Results List -->
+    <h3 class="mb-3">Found {{ resources.count }} {{ resources.count|pluralize:"Resource,Resources" }}</h3>
+
+    <div class="list-group">
+        {% for resource in resources %}
+            {% with current_status=progress_map|get_item:resource.id|default:'not_started' %}
+            <div class="list-group-item p-4 mb-3 rounded border">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div>
+                        <h4 class="mb-1 text-primary">{{ resource.title }}</h4>
+                        <small class="text-muted">
+                            Hobby: {{ resource.category.name|default:"General" }} | 
+                            Type: <span class="badge bg-secondary">{{ resource.get_content_type_display }}</span> |
+                            Difficulty: <span class="badge bg-{% if resource.difficulty == 'beginner' %}success{% elif resource.difficulty == 'intermediate' %}warning text-dark{% else %}danger{% endif %}">{{ resource.get_difficulty_display }}</span>
+                        </small>
+                    </div>
+                    
+                    <!-- Current Status Display -->
+                    <span class="badge bg-{% if current_status == 'completed' %}success{% elif current_status == 'in_progress' %}primary{% elif current_status == 'bookmarked' %}info{% else %}light text-dark{% endif %} p-2">
+                        Status: {{ current_status|replace_underscore }}
+                    </span>
+                </div>
+                
+                <p class="mb-2 mt-3">{{ resource.description }}</p>
+                
+                <!-- Action Buttons (Progress Tracking) -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <!-- Link to Content -->
+                    <div class="content-link-container">
+                        {% if resource.external_link %}
+                            <a href="{{ resource.external_link }}" target="_blank" class="btn btn-sm btn-success me-2">View Content <i class="fas fa-external-link-alt ms-1"></i></a>
+                        {% elif resource.uploaded_file %}
+                            <a href="{{ resource.uploaded_file.url }}" target="_blank" class="btn btn-sm btn-warning text-dark me-2">Download File <i class="fas fa-file-download ms-1"></i></a>
+                        {% else %}
+                            <button disabled class="btn btn-sm btn-light">Content Not Available</button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Progress Forms -->
+                    <div class="progress-actions">
+                        <!-- Mark as In Progress -->
+                        {% if current_status != 'in_progress' and current_status != 'completed' %}
+                        <form method="POST" action="{% url 'update_learning_status' resource.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="in_progress">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Start/Continue</button>
+                        </form>
+                        {% endif %}
+                        
+                        <!-- Mark as Bookmarked -->
+                        {% if current_status != 'bookmarked' %}
+                        <form method="POST" action="{% url 'update_learning_status' resource.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="bookmarked">
+                            <button type="submit" class="btn btn-sm btn-outline-info">Bookmark</button>
+                        </form>
+                        {% endif %}
+
+                        <!-- Mark as Completed -->
+                        {% if current_status != 'completed' %}
+                        <form method="POST" action="{% url 'update_learning_status' resource.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="completed">
+                            <button type="submit" class="btn btn-sm btn-outline-success">Mark Complete</button>
+                        </form>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+        {% empty %}
+            <div class="list-group-item p-4">
+                <p class="mb-0 fs-5 text-muted">No resources matched your criteria. Try clearing the filters.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginator / Back Button -->
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-4">&larr; Back to Home</a>
+</div>
+{% endblock %}

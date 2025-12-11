@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ title }}</h1>
+        <a href="{% url add_url %}" class="btn btn-primary btn-lg">Add New</a>
+    </div>
+    
+    <p class="lead text-muted">Click the name to edit details, or use the links below.</p>
+
+    <!-- Hospital List -->
+    {% if hospitals %}
+        <div class="list-group mt-4">
+            {% for hospital in hospitals %}
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">{{ hospital.name }}</h5>
+                        <small class="text-muted">{{ hospital.city }}, {{ hospital.state }}</small>
+                    </div>
+                    <span class="btn btn-secondary btn-sm">Edit Details &rarr;</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">No entries found.</p>
+    {% endif %}
+
+    <div class="mt-5">
+        <a href="{% url 'staff:dashboard_home' %}" class="btn btn-outline-secondary">&larr; Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

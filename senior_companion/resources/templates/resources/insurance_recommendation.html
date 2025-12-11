@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load humanize %} 
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <h1 class="mb-4">{{ title }}</h1>
+    <p class="lead text-muted">Answer a few questions about your needs and health profile to get a personalized policy recommendation.</p>
+
+    <!-- Display the Result List if a prediction was made -->
+    {% if recommended_policies %}
+        <h3 class="mb-4 text-success"><i class="fas fa-medal me-2"></i>Top Recommendations Ranked for You</h3>
+        
+        <div class="list-group mb-5">
+            {% for policy in recommended_policies %}
+                <div class="list-group-item p-4 mb-3 border-dark-subtle rounded-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h4 class="mb-1 text-primary">{{ forloop.counter }}. {{ policy.name }}</h4>
+                        <!-- Show the score for transparency -->
+                        <span class="badge bg-success rounded-pill fs-6 fw-bold p-2">Score: {{ policy.score|floatformat:2 }}</span>
+                    </div>
+                    
+                    <h6 class="card-subtitle mb-2 text-muted">{{ policy.company }}</h6>
+                    
+                    <p class="mb-1">{{ policy.description }}</p>
+                    
+                    <div class="row mt-3 small">
+                        <div class="col-md-4">
+                            <strong class="text-dark">Premium:</strong> ₹{{ policy.premium|intcomma }} / Month
+                        </div>
+                        <div class="col-md-4">
+                            <strong class="text-dark">Coverage:</strong> ₹{{ policy.coverage|intcomma }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong class="text-dark">Term:</strong> {{ policy.term }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+    {% endif %}
+
+    <!-- Recommendation Input Form -->
+    <h3 class="mb-3">Health & Financial Profile</h3>
+    
+    <form method="POST" action="">
+        {% csrf_token %}
+        
+        <div class="row g-3">
+            <!-- Row 1: Age and Income -->
+            <div class="col-md-6">
+                <label class="form-label">{{ form.dateOfBirth.label }}</label>
+                {{ form.dateOfBirth }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">{{ form.annualIncome.label }}</label>
+                {{ form.annualIncome }}
+            </div>
+            
+            <!-- Row 2: Coverage and Premium -->
+            <div class="col-md-6">
+                <label class="form-label">{{ form.coverageAmount.label }}</label>
+                {{ form.coverageAmount }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">{{ form.premiumBudget.label }}</label>
+                {{ form.premiumBudget }}
+            </div>
+            
+            <!-- Row 3: Risk and Family -->
+            <div class="col-md-6">
+                <label class="form-label">{{ form.riskTolerance.label }}</label>
+                {{ form.riskTolerance }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">{{ form.familySize.label }}</label>
+                {{ form.familySize }}
+            </div>
+            
+            <!-- Row 4: Dependents and Health Factors -->
+            <div class="col-md-4">
+                <label class="form-label">{{ form.dependents.label }}</label>
+                {{ form.dependents }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">{{ form.smokingStatus.label }}</label>
+                {{ form.smokingStatus }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">{{ form.exerciseFrequency.label }}</label>
+                {{ form.exerciseFrequency }}
+            </div>
+
+            <!-- Row 5: Medical Conditions (Checkbox) -->
+            <div class="col-12 mt-4">
+                <label class="form-label mb-2">{{ form.medicalConditions.label }}</label>
+                <div class="d-flex flex-wrap">
+                    {% for choice in form.medicalConditions %}
+                        <div class="form-check me-4 fs-5">
+                            <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                {{ choice.tag }} {{ choice.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="col-12 mt-5">
+                <button type="submit" class="btn btn-primary w-100 py-3">Get My Suggestion</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

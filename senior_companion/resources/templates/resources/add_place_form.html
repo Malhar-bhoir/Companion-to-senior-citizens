@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <h1 class="mb-4">{{ title }}</h1>
+
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- 
+          This is our new custom form layout.
+          We manually render each field for better control.
+        -->
+        
+        <!-- Display any non-field errors (like 'already exists') -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- Row 1: Name and Category -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="{{ form.name.id_for_label }}" class="form-label">Place Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                {{ form.category }}
+                {% if form.category.errors %}<div class="text-danger small">{{ form.category.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- Row 2: Address -->
+        <div class="mb-3">
+            <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+            {{ form.address }}
+            {% if form.address.errors %}<div class="text-danger small">{{ form.address.errors }}</div>{% endif %}
+        </div>
+        
+        <!-- Row 3: Main Image -->
+        <div class="mb-3">
+            <label for="{{ form.main_image.id_for_label }}" class="form-label">Main Image (Banner)</label>
+            {{ form.main_image }}
+            {% if form.main_image.errors %}<div class="text-danger small">{{ form.main_image.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Row 3: Description -->
+        <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Row 4: Accessibility Checkboxes -->
+        <h5 class="mt-4">Accessibility Features</h5>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-check fs-5">
+                    {{ form.is_wheelchair_accessible }}
+                    <label class="form-check-label" for="{{ form.is_wheelchair_accessible.id_for_label }}">
+                        Wheelchair Accessible
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check fs-5">
+                    {{ form.has_restrooms }}
+                    <label class="form-check-label" for="{{ form.has_restrooms.id_for_label }}">
+                        Has Restrooms
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check fs-5">
+                    {{ form.has_seating }}
+                    <label class="form-check-label" for="{{ form.has_seating.id_for_label }}">
+                        Has Seating
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+
+        <!-- Buttons -->
+        <div class="d-flex">
+            <button type="submit" class="btn btn-primary btn-lg">Save Place</button>
+            <a href="{% url 'staff:dashboard_home' %}" class="btn btn-outline-secondary btn-lg ms-3">Cancel</a>
+        </div>
+    </form>
+    
+    <!-- 
+      This is a small script to add Bootstrap classes to the form fields
+      that Django renders, since we can't do it in the forms.py file.
+    -->
+    <script>
+        // Find all input/select/textarea fields (excluding checkboxes)
+         document.querySelectorAll('input[type="text"], input[type="email"], input[type="file"], select, textarea').forEach(function(field) {
+            field.classList.add('form-control');
+        });
+        document.querySelectorAll('input[type="checkbox"]').forEach(function(field) {
+            field.classList.add('form-check-input');
+        });
+    </script>
+</div>
+{% endblock %}

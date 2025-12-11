@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Insurance Hub{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <h1 class="mb-2">Insurance Hub</h1>
+    <p class="lead text-muted">Manage your personal policies and explore recommendations.</p>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mt-4" id="insuranceTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="my-policies-tab" data-bs-toggle="tab" data-bs-target="#my-policies" type="button" role="tab">
+                <i class="fas fa-file-invoice me-2"></i>My Policies
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="recommendations-tab" data-bs-toggle="tab" data-bs-target="#recommendations" type="button" role="tab">
+                <i class="fas fa-star me-2"></i>Recommendations
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-success" id="add-policy-tab" data-bs-toggle="tab" data-bs-target="#add-policy" type="button" role="tab">
+                <i class="fas fa-plus-circle me-2"></i>Add New Policy
+            </button>
+        </li>
+        <!-- --- ADD THIS NEW TAB BELOW --- -->
+        <li class="nav-item" role="presentation">
+            <a class="nav-link fw-bold text-primary" href="{% url 'insurance_recommendation' %}">
+                <i class="fas fa-brain me-2"></i>Get Suggestions
+            </a>
+        </li>
+
+
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content p-4 border border-top-0 bg-white rounded-bottom" id="insuranceTabsContent">
+        
+        <!-- TAB 1: My Policies -->
+        <div class="tab-pane fade show active" id="my-policies" role="tabpanel">
+            {% if my_policies %}
+                <div class="row">
+                    {% for policy in my_policies %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-0" style="background-color: #f8fdf9;">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="card-title text-success">{{ policy.policy_name }}</h5>
+                                        <span class="badge bg-secondary">{{ policy.get_coverage_type_display }}</span>
+                                    </div>
+                                    <h6 class="card-subtitle mb-2 text-muted">{{ policy.provider_name }}</h6>
+                                    <p class="small text-muted mb-2">Number: {{ policy.policy_number }}</p>
+                                    
+                                    <hr>
+                                    
+                                    <div class="row mb-2">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Premium</small>
+                                            <strong>₹{{ policy.premium_amount|default:"--" }}</strong> <span class="small text-muted">/ {{ policy.premium_frequency }}</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Expires</small>
+                                            <strong class="{% if policy.expiry_date < today %}text-danger{% else %}text-dark{% endif %}">
+                                                {{ policy.expiry_date|date:"M d, Y" }}
+                                            </strong>
+                                        </div>
+                                    </div>
+
+                                    {% if policy.coverage_summary %}
+                                        <div class="alert alert-light border mb-2 p-2 small">
+                                            <i class="fas fa-info-circle me-1"></i> {{ policy.coverage_summary }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="mt-3 d-flex justify-content-between">
+                                        {% if policy.policy_document %}
+                                            <a href="{{ policy.policy_document.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-1"></i> View Document
+                                            </a>
+                                        {% else %}
+                                            <button disabled class="btn btn-sm btn-light text-muted">No Document</button>
+                                        {% endif %}
+                                        
+                                        <form method="POST" action="{% url 'delete_user_policy' policy.id %}" onsubmit="return confirm('Delete this policy?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <p class="lead text-muted">You haven't added any policies yet.</p>
+                    <button class="btn btn-success" onclick="document.getElementById('add-policy-tab').click()">Add Your First Policy</button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- TAB 2: Recommended Policies (Staff Added) -->
+        <div class="tab-pane fade" id="recommendations" role="tabpanel">
+            <div class="list-group">
+                {% for policy in recommended_policies %}
+                    <div class="list-group-item list-group-item-action p-4 mb-3 rounded border">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1 text-primary">{{ policy.policy_name }}</h5>
+                            <small class="text-muted">{{ policy.provider_name }}</small>
+                        </div>
+                        <p class="mb-1 mt-2">{{ policy.description }}</p>
+                        
+                        {% if policy.coverage_summary %}
+                            <div class="mt-2 p-2 bg-light rounded">
+                                <strong><i class="fas fa-check-circle text-success me-2"></i>Quick Summary:</strong>
+                                {{ policy.coverage_summary }}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted mt-2 d-block">Type: {{ policy.get_policy_type_display }}</small>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No recommendations available at the moment.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- TAB 3: Add New Policy Form -->
+        <div class="tab-pane fade" id="add-policy" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h4 class="mb-4">Add Policy Details</h4>
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <!-- Basic Info -->
+                            <div class="col-md-6">
+                                <label class="form-label">Policy Name *</label>
+                                {{ form.policy_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Provider *</label>
+                                {{ form.provider_name }}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Policy Number</label>
+                                {{ form.policy_number }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Type</label>
+                                {{ form.coverage_type }}
+                            </div>
+
+                            <!-- Dates -->
+                            <div class="col-md-6">
+                                <label class="form-label">Start Date</label>
+                                {{ form.start_date }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Expiry / Renewal Date</label>
+                                {{ form.expiry_date }}
+                            </div>
+
+                            <!-- Financials -->
+                            <div class="col-md-6">
+                                <label class="form-label">Premium Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    {{ form.premium_amount }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Frequency</label>
+                                {{ form.premium_frequency }}
+                            </div>
+
+                            <!-- Extra -->
+                            <div class="col-12">
+                                <label class="form-label">Personal Notes / Summary</label>
+                                {{ form.coverage_summary }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Upload Document (PDF/Image)</label>
+                                {{ form.policy_document }}
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-success w-100 py-2">Save Policy</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

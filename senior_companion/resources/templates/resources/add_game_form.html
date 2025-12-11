@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <h1 class="mb-4">{{ title }}</h1>
+    <p class="lead text-muted">Define the new game's properties and accessibility features for seniors.</p>
+    
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Error Display (Standard) -->
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                Please correct the following errors:
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <p>{{ field.label }}: {{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="row g-3">
+            <!-- Name and URL -->
+            <div class="col-md-6">
+                <label for="{{ form.name.id_for_label }}" class="form-label">Game Name *</label>
+                {{ form.name }}
+            </div>
+            <div class="col-md-6">
+                <label for="{{ form.game_url.id_for_label }}" class="form-label">Game URL Path *</label>
+                {{ form.game_url }}
+                <div class="form-text">e.g., /games/memory/ or /games/chess/</div>
+            </div>
+            
+            <!-- Type and Difficulty -->
+            <div class="col-md-6">
+                <label for="{{ form.game_type.id_for_label }}" class="form-label">Game Type *</label>
+                {{ form.game_type }}
+            </div>
+            <div class="col-md-6">
+                <label for="{{ form.difficulty.id_for_label }}" class="form-label">Difficulty Level *</label>
+                {{ form.difficulty }}
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+                <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                {{ form.description }}
+            </div>
+
+            <hr class="my-3">
+            
+            <!-- Accessibility Features -->
+            <h5 class="mt-4">Accessibility Settings</h5>
+            <div class="col-md-4">
+                <div class="form-check fs-5">
+                    {{ form.is_high_contrast }}
+                    <label class="form-check-label" for="{{ form.is_high_contrast.id_for_label }}">
+                        High Contrast Mode
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check fs-5">
+                    {{ form.is_large_text }}
+                    <label class="form-check-label" for="{{ form.is_large_text.id_for_label }}">
+                        Large Text/Pieces
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check fs-5">
+                    {{ form.is_multiplayer_ready }}
+                    <label class="form-check-label" for="{{ form.is_multiplayer_ready.id_for_label }}">
+                        Supports Multiplayer
+                    </label>
+                </div>
+            </div>
+
+        </div>
+        
+        <hr class="my-4">
+
+        <!-- Buttons -->
+        <div class="d-flex">
+            <button type="submit" class="btn btn-primary btn-lg">Save Game</button>
+            <a href="{% url 'staff:manage_games' %}" class="btn btn-outline-secondary btn-lg ms-3">Cancel</a>
+        </div>
+    </form>
+    
+    <!-- Script to add Bootstrap classes -->
+    <script>
+        document.querySelectorAll('input[type="text"], input[type="url"], input[type="email"], select, textarea, input[type="number"]').forEach(function(field) {
+            if (!field.classList.contains('form-check-input')) {
+                field.classList.add('form-control');
+            }
+        });
+        document.querySelectorAll('select').forEach(function(field) {
+            field.classList.remove('form-control');
+            field.classList.add('form-select');
+        });
+    </script>
+</div>
+{% endblock %}

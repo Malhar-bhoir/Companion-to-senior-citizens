@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ hospital.name }}{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+
+    <h1 class="mb-2">{{ hospital.name }}</h1>
+    <p class="lead text-muted">{{ hospital.city }}, {{ hospital.state }}</p>
+    
+    <div class="row mb-5">
+        <!-- Hospital Contact Info -->
+        <div class="col-md-6">
+            <h3 class="mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>Contact & Services</h3>
+            <p class="fs-5 mb-1"><strong>Phone:</strong> <a href="tel:{{ hospital.phone_number }}">{{ hospital.phone_number }}</a></p>
+            <p class="fs-5 mb-1"><strong>Address:</strong> {{ hospital.address }}</p>
+            <p class="fs-5 mb-1"><strong>Specialty Focus:</strong> {{ hospital.specialty|default:"General Care" }}</p>
+
+            <h5 class="mt-4">Accessibility & Emergency</h5>
+            <div class="fs-5">
+                <p class="mb-1">{% if hospital.is_emergency_24h %}<span class="text-danger me-2">&#10003;</span> 24/7 Emergency Services{% else %}<span class="text-muted me-2">&#10007;</span> Limited Emergency Services{% endif %}</p>
+                <p class="mb-1">{% if hospital.is_wheelchair_accessible %}<span class="text-success me-2">&#10003;</span> Wheelchair Accessible Ramps{% else %}<span class="text-muted me-2">&#10007;</span> Limited Ramps{% endif %}</p>
+                <p class="mb-1">{% if hospital.has_elevator %}<span class="text-success me-2">&#10003;</span> Elevators Available{% else %}<span class="text-muted me-2">&#10007;</span> No Elevators{% endif %}</p>
+                <p class="mb-1">{% if hospital.has_geriatrics_dept %}<span class="text-success me-2">&#10003;</span> Dedicated Geriatrics Dept.{% else %}<span class="text-muted me-2">&#10007;</span> No Geriatrics Dept.{% endif %}</p>
+            </div>
+            
+            <a href="https://maps.google.com/?q={{ hospital.address }}" target="_blank" class="btn btn-outline-secondary mt-3">
+                <i class="fas fa-map-marker-alt me-1"></i> Get Directions
+            </a>
+        </div>
+
+        <!-- Affiliated Doctors -->
+        <div class="col-md-6 border-start ps-4">
+            <h3 class="mb-3 text-primary"><i class="fas fa-user-md me-2"></i>Affiliated Doctors</h3>
+            {% if affiliated_doctors %}
+                <ul class="list-group list-group-flush">
+                    {% for doctor in affiliated_doctors %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Dr. {{ doctor.name }}</strong>
+                                <span class="badge bg-info text-dark ms-2">{{ doctor.get_specialty_display }}</span>
+                            </div>
+                            <a href="{% url 'doctor_detail' doctor.id %}" class="btn btn-sm btn-outline-primary">View Profile</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No specific doctor profiles linked to this hospital yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+    <a href="{% url 'hospital_list' %}" class="btn btn-secondary btn-lg mt-3">&larr; Back to Hospital List</a>
+</div>
+{% endblock %}

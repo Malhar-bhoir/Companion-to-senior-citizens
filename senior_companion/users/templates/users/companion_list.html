@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}My Companions{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <h1 class="mb-4">Companions</h1>
+    <p class="lead text-muted">Find other members of the community to add to your personal companion list.</p>
+
+    <!-- This is where success/error messages will appear -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}{% if 'error' in message.tags %}alert-danger{% else %}alert-success{% endif %}{% else %}alert-success{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <hr class="my-4">
+
+    <!-- 
+    ==================================
+    SECTION 1: My Current Companions
+    ==================================
+    -->
+    <div class="mb-5">
+        <h3><i class="bi bi-people-fill me-2"></i>My Companions</h3>
+        
+        <!-- Check if the user has any companions -->
+        {% if my_companions %}
+            <p>You have {{ my_companions.count }} companion{{ my_companions.count|pluralize }}.</p>
+            <ul class="list-group">
+                {% for companion in my_companions %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ companion.email }}
+                        <div>
+                            <!-- This is the new chat button -->
+                            <a href="{% url 'chat_room' companion.id %}" class="btn btn-sm btn-primary me-2">Chat</a>
+                            
+                            <!-- This is your existing remove button -->
+                            <a href="{% url 'remove_companion' companion.id %}" class="btn btn-sm btn-outline-danger">Remove</a>
+                        </div>
+                        <!-- Link to remove them -->
+                        <a href="{% url 'remove_companion' companion.id %}" class="btn btn-sm btn-outline-danger">Remove</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <!-- Show this message if their list is empty -->
+            <p class="text-muted">You have not added any companions yet. Find new companions from the list below!</p>
+        {% endif %}
+    </div>
+
+
+    <!-- 
+    ==================================
+    SECTION 2: Find New Companions
+    ==================================
+    -->
+    <div>
+        <h3><i class="bi bi-search me-2"></i>Find New Companions</h3>
+        <p>This is a list of all other members in the community.</p>
+        
+        <ul class="list-group">
+            {% for senior in all_other_seniors %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <!-- Display the user's email or username -->
+                    {{ senior.email }}
+                    
+                    <!-- 
+                    This is the conditional logic:
+                    - If this 'senior' is in our 'my_companions' list, show "Remove".
+                    - Otherwise, show "Add".
+                    -->
+                    {% if senior in my_companions %}
+                        <a href="{% url 'remove_companion' senior.id %}" class="btn btn-sm btn-outline-danger">Remove Companion</a>
+                    {% else %}
+                        <a href="{% url 'add_companion' senior.id %}" class="btn btn-sm btn-primary">Add Companion</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Simple SVG Icons (for the headings) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="bi-people-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+    <path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+  </symbol>
+  <symbol id="bi-search" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+  </symbol>
+</svg>
+{% endblock %}

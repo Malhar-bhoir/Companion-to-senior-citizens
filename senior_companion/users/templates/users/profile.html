@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+
+<!-- We'll add a custom style block just for this page -->
+<!-- This makes the hobby checkboxes look much better -->
+<style>
+    .hobby-checkbox-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin-top: 0.5rem;
+    }
+
+    .hobby-checkbox-list li {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid #eee;
+        border-radius: 8px;
+    }
+
+    .hobby-checkbox-list li label {
+        display: block;
+        margin-left: 0.5rem;
+        font-weight: 400;
+        /* Make label text normal */
+    }
+
+    .hobby-checkbox-list li input[type="checkbox"] {
+        /* Make checkbox and label inline and centered */
+        display: inline-block;
+        width: auto;
+        vertical-align: middle;
+        margin-right: 0.75rem;
+    }
+</style>
+
+<div class="content-container p-4 p-md-5">
+    <div class="row">
+        <div class="col-md-8 col-lg-7 mx-auto">
+            <h1 class="mb-4">My Profile</h1>
+            <p>Welcome, {{ request.user.email }}. Update your hobbies and emergency contact information here.</p>
+
+            <!-- This is where success messages will appear -->
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <hr class="my-4">
+
+                <!-- We will render the form fields manually for better styling -->
+
+                <!-- Hobbies Field -->
+                <div>
+                    <label><strong>Your Hobbies</strong></label>
+                    <p class="text-muted" style="font-size: 0.95rem;">Select all that apply. This will help us recommend
+                        events and articles for you.</p>
+                    <ul class="hobby-checkbox-list">
+                        {% for choice in form.hobbies %}
+                        <li>
+                            <label for="{{ choice.id_for_label }}">
+                                {{ choice.tag }} {{ choice.choice_label }}
+                            </label>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Emergency Contact Fields -->
+                <div>
+                    <label><strong>Emergency Contact</strong></label>
+                    <!-- {{ form.emergency_contact_name.label_tag }} -->
+                    {{ form.emergency_contact_name }}
+
+                    <!-- {{ form.emergency_contact_phone.label_tag }} -->
+                    <div class="mt-3">
+                        {{ form.emergency_contact_phone }}
+                    </div>
+                </div>
+
+                <!-- --- ADD THIS NEW LOCATION BLOCK --- -->
+                <div class="mb-4">
+                    <label><strong>Home Location (For Nearby Services)</strong></label>
+                    <div class="row">
+                        <div class="col-md-6 mt-3">
+                            <label for="{{ form.home_address_city.id_for_label }}" class="form-label visually-hidden">City</label>
+                            <!-- FIX: Render the city field -->
+                            {{ form.home_address_city }} 
+                            {% if form.home_address_city.errors %}<div class="text-danger small">{{ form.home_address_city.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <label for="{{ form.home_address_state.id_for_label }}" class="form-label visually-hidden">State/Region</label>
+                            <!-- FIX: Render the state field -->
+                            {{ form.home_address_state }}
+                            {% if form.home_address_state.errors %}<div class="text-danger small">{{ form.home_address_state.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="form-text text-muted">Enter your City and State/Region to enable the "Find Nearby Hospitals" search button.</div>
+                </div>
+
+
+                <button type="submit" class="btn btn-primary w-100 mt-4">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

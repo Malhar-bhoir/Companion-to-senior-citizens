@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Insurance Policies{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h1 class="mb-4">Insurance Policies</h1>
+    <p class="lead text-muted mb-4">Explore guides and information on available insurance policies.</p>
+
+    <div class="list-group">
+        {% for policy in policies %}
+            <div class="list-group-item p-4 mb-3" style="border-radius: 8px; border: 1px solid #eee;">
+                <div class="d-flex w-100 justify-content-between mb-2">
+                    <h4 class="mb-1">{{ policy.policy_name }}</h4>
+                    <span class="badge bg-secondary rounded-pill fs-6 fw-normal">{{ policy.provider_name }}</span>
+                </div>
+                <p class="mb-2 fs-5">{{ policy.description }}</T>
+                <small class="text-muted fs-6">
+                    <strong>Policy Type:</strong> {{ policy.get_policy_type_display }}
+                </small>
+            </div>
+        {% empty %}
+            <div class="list-group-item p-4 mb-3" style="border-radius: 8px; border: 1px solid #eee;">
+                <h4 class="mb-1">No Policies Added Yet</h4>
+                <p class="mb-0 fs-5 text-muted">Our staff is working on adding policy information. Please check back soon!</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-4">Back to Home</a>
+</div>
+{% endblock %}

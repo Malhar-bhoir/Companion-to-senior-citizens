@@ -1,0 +1,115 @@
+<!-- Floating Chat Button -->
+<div id="chat-widget-btn" class="position-fixed bottom-0 end-0 m-4 p-3 rounded-circle shadow-lg text-white" 
+     style="background-color: #28a745; cursor: pointer; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; z-index: 1050;">
+    <i class="fas fa-robot fs-3"></i>
+</div>
+
+<!-- Chat Window (Hidden by default) -->
+<div id="chat-widget-window" class="position-fixed bottom-0 end-0 m-4 bg-white rounded-3 shadow-lg d-none" 
+     style="width: 350px; height: 500px; z-index: 1060; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #ddd;">
+    
+    <!-- Header -->
+    <div class="p-3 text-white d-flex justify-content-between align-items-center" style="background-color: var(--brand-green);">
+        <h5 class="mb-0"><i class="fas fa-robot me-2"></i>Help Guide</h5>
+        <button id="chat-close-btn" class="btn btn-sm text-white"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Messages Area -->
+    <div id="chat-messages" class="flex-grow-1 p-3" style="overflow-y: auto; background-color: #f9f9f9;">
+        <!-- Initial Bot Message -->
+        <div class="d-flex flex-column align-items-start mb-2">
+            <div class="bg-light border p-2 rounded-3 text-dark" style="max-width: 80%;">
+                Hello! I'm here to help. Ask me things like "How do I register?" or "Where are my reminders?".
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="p-3 border-top bg-white">
+        <div class="input-group">
+            <input type="text" id="chat-input" class="form-control" placeholder="Type your question...">
+            <button id="chat-send-btn" class="btn btn-primary"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('chat-widget-btn');
+        const window = document.getElementById('chat-widget-window');
+        const closeBtn = document.getElementById('chat-close-btn');
+        const input = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('chat-send-btn');
+        const messages = document.getElementById('chat-messages');
+
+        // Toggle Window
+        btn.addEventListener('click', () => {
+            window.classList.remove('d-none');
+            btn.classList.add('d-none');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            window.classList.add('d-none');
+            btn.classList.remove('d-none');
+        });
+
+        // Send Message Logic
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            // 1. Add User Message to UI
+            appendMessage('user', text);
+            input.value = '';
+
+            // 2. Send to Django API
+            fetch('{% url "chat_api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ message: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 3. Add Bot Response to UI
+                appendMessage('bot', data.response);
+                
+                // If there is a suggested link, add a button
+                if (data.link) {
+                    const linkBtn = `<a href="${data.link}" class="btn btn-sm btn-outline-success mt-2">Go to Page</a>`;
+                    appendMessage('bot-html', linkBtn);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                appendMessage('bot', "Sorry, I'm having trouble connecting right now.");
+            });
+        }
+
+        function appendMessage(sender, text) {
+            const div = document.createElement('div');
+            div.className = `d-flex flex-column align-items-${sender === 'user' ? 'end' : 'start'} mb-2`;
+            
+            let content = '';
+            if (sender === 'user') {
+                content = `<div class="text-white p-2 rounded-3" style="max-width: 80%; background-color: var(--brand-green);">${text}</div>`;
+            } else if (sender === 'bot') {
+                content = `<div class="bg-light border p-2 rounded-3 text-dark" style="max-width: 80%;">${text}</div>`;
+            } else {
+                // For HTML buttons/links
+                content = `<div style="max-width: 80%;">${text}</div>`;
+            }
+            
+            div.innerHTML = content;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    });
+</script>

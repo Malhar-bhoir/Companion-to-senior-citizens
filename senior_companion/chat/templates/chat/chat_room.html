@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Chat with {{ other_user_email }}
+{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <h1 class="mb-4">Chat with {{ other_user_email }}</h1>
+
+    <!-- 1. The Chat Log -->
+    <div id="chat-log" class="mb-3 p-3 border rounded bg-light" style="height: 400px; overflow-y: auto;">
+        <p class="text-muted text-center">Connecting to chat...</p>
+    </div>
+
+    <!-- 2. The Message Input Form -->
+    <div class="d-flex">
+        <input id="chat-message-input" type="text" class="form-control me-2" placeholder="Type a message...">
+        <button id="chat-message-submit" class="btn btn.primary">Send</button>
+    </div>
+</div>
+
+<!-- Safely pass Django variables to JavaScript -->
+{{ user_1_id|json_script:"user-1-id" }}
+{{ user_2_id|json_script:"user-2-id" }}
+{{ user.email|json_script:"current-user-email" }}
+
+<script>
+    // Get data from json_script tags
+    const user1 = JSON.parse(document.getElementById('user-1-id').textContent);
+    const user2 = JSON.parse(document.getElementById('user-2-id').textContent);
+    const currentUserEmail = JSON.parse(document.getElementById('current-user-email').textContent);
+
+    const chatLog = document.getElementById('chat-log');
+    const chatInput = document.getElementById('chat-message-input');
+    const chatSubmit = document.getElementById('chat-message-submit');
+
+    // 1. Open WebSocket connection
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    
+    // --- THIS IS THE FIX ---
+    // I have removed the '/ws' prefix. 
+    // It now correctly connects to the path your router is listening on.
+    const chatSocket = new WebSocket(
+        protocol +
+        '://' +
+        window.location.host +
+        '/chat/' +  // <-- This now matches our routing.py
+        user1 +
+        '/' +
+        user2 +
+        '/'
+    );
+
+    // 2. Handle incoming messages
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const messageHTML = data.sender_email === currentUserEmail
+            ? `<div class="text-end my-2">
+                    <span class="badge bg-primary px-3 py-2" style="font-size: 1rem;">${data.message}</span><br>
+                    <small class="text-muted">You</small>
+               </div>`
+            : `<div class="text-start my-2">
+                    <span class="badge bg-secondary px-3 py-2" style="font-size: 1rem;">${data.message}</span><br>
+                    <small class="text-muted">${data.sender_email}</small>
+               </div>`;
+
+        chatLog.innerHTML += messageHTML;
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
+
+    // 3. Connection opened
+    chatSocket.onopen = function(e) {
+        chatLog.innerHTML = `<p class="text-muted text-center">Connected. Say hello!</p>`;
+    };
+
+    // 4. Connection closed
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+        chatLog.innerHTML = `<p class="text-muted text-center">Connection lost. Please refresh the page.</p>`;
+    };
+
+    // 5. Send message function
+    function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message === '') return;
+
+        chatSocket.send(JSON.stringify({ message }));
+        chatInput.value = '';
+    }
+
+    // Send on button click
+    chatSubmit.onclick = sendMessage;
+
+    // Send on Enter key press
+    chatInput.onkeyup = function(e) {
+        if (e.key === 'Enter') sendMessage();
+    };
+</script>
+{% endblock %}

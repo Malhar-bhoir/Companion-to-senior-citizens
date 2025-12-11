@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ place.name }}{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+
+    <!-- Header: Show the main image if it exists -->
+    {% if place.main_image %}
+        <img src="{{ place.main_image.url }}" alt="{{ place.name }}" class="img-fluid rounded-3 mb-4" style="width: 100%; max-height: 400px; object-fit: cover;">
+    {% endif %}
+
+    <h1 class="mb-2">{{ place.name }}</h1>
+    <p class="lead text-muted">{{ place.category.name|default:"Uncategorized" }} in {{ place.address }}</p>
+    
+    <hr class="my-4">
+    
+    <!-- 
+    ==================================
+    SECTION 1: Image Gallery
+    ==================================
+    -->
+    {% if gallery_images %}
+        <h3 class="mb-3">Gallery</h3>
+        <div class="row">
+            {% for image in gallery_images %}
+                <div class="col-md-4 mb-3">
+                    <a href="{{ image.image.url }}" target="_blank">
+                        <img src="{{ image.image.url }}" alt="{{ image.caption|default:"Gallery image" }}" class="img-fluid rounded-3" style="height: 200px; width: 100%; object-fit: cover;">
+                    </a>
+                    {% if image.caption %}
+                        <p class="text-center text-muted small mt-1">{{ image.caption }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <hr class="my-4">
+    {% endif %}
+    
+    <!-- 
+    ==================================
+    SECTION 2: Staff-Only Upload Form
+    ==================================
+    -->
+    {% if user.is_staff %}
+        <div class="p-4 bg-light border rounded-3 mb-5">
+            <h3>Staff: Add a Gallery Image</h3>
+            <p>This form is only visible to you. Upload a new image for this place.</p>
+            
+            <!-- This is where success/error messages will appear -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}{% if 'error' in message.tags %}alert-danger{% else %}alert-success{% endif %}{% else %}alert-success{% endif %}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class.="mb-3">
+                    <label for="{{ image_form.image.id_for_label }}" class="form-label">New Image</label>
+                    {{ image_form.image }}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ image_form.caption.id_for_label }}" class="form-label">Caption (Optional)</label>
+                    {{ image_form.caption }}
+                </div>
+                <button type,"submit" class="btn btn-primary">Upload Image</button>
+            </form>
+        </div>
+
+        <div class="mt-5 p-4 bg-light border border-danger rounded-3">
+            <h3 class="text-danger">Danger Zone</h3>
+            <p>This action cannot be undone. This will permanently delete the "<strong>{{ place.name }}</strong>" place, including all of its gallery images.</p>
+            
+            <!-- This form points to our new delete_place URL -->
+            <form method="POST" action="{% url 'staff:delete_place' place.id %}" onsubmit="return confirm('Are you absolutely sure you want to delete this place?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-lg">Delete This Place</button>
+            </form>
+        </div>
+        <hr class="my-4">
+    {% endif %}
+
+    <!-- 
+    ==================================
+    SECTION 3: About & Accessibility
+    ==================================
+    -->
+    <h3 class="mb-3">About this place</h3>
+    <p style="font-size: 1.2rem;">{{ place.description|linebreaks }}</p>
+
+    <h3 class="mt-5 mb-3">Accessibility</h3>
+    <div class="fs-5">
+        <p class="mb-2 d-flex align-items-center">
+            {% if place.is_wheelchair_accessible %}
+                <span class_ ="text-success me-2">&#10003;</span> Wheelchair Accessible
+            {% else %}
+                <span class="text-danger me-2">&#10007;</span> Not Wheelchair Accessible
+            {% endif %}
+        </p>
+        <p class="mb-2 d-flex align-items-center">
+            {% if place.has_restrooms %}
+                <span class="text-success me-2">&#10003;</span> Restrooms Available
+            {% else %}
+                <span class.="text-danger me-2">&#10007;</span> No Restrooms
+            {% endif %}
+        </p>
+        <p class="mb-2 d-flex align-items-center">
+            {% if place.has_seating %}
+                <span class="text-success me-2">&#10003;</span> Seating Areas Available
+            {% else %}
+                <span class="text-danger me-2">&#10007;</span> No Seating Areas
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- 
+    ==================================
+    SECTION 4: Navigation
+    ==================================
+    -->
+    {% if user.is_staff %}
+        <a href="{% url 'staff:manage_place_list' %}" class="btn btn-secondary btn-lg mt-5">&larr; Back to Manage List</a>
+    {% else %}
+        <a href="{% url 'place_list' %}" class="btn btn-secondary btn-lg mt-5">&larr; Back to All Places</a>
+    {% endif %}
+</div>
+{% endblock %}

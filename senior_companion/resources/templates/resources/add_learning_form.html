@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <h1 class="mb-4">{{ title }}</h1>
+    <p class="lead text-muted">Create a new learning resource, linking it to a hobby and specifying its format (Video, PDF, or Article).</p>
+    
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Display any form errors -->
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                Please correct the following errors:
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <p>{{ field.label }}: {{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+                {% if form.non_field_errors %}<p>{{ form.non_field_errors }}</p>{% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Row 1: Title and Hobby -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-8">
+                <label for="{{ form.title.id_for_label }}" class="form-label">Resource Title *</label>
+                {{ form.title }}
+            </div>
+            <div class="col-md-4">
+                <label for="{{ form.category.id_for_label }}" class="form-label">Related Hobby/Interest *</label>
+                {{ form.category }}
+            </div>
+        </div>
+        
+        <!-- Row 2: Description -->
+        <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">Short Description</label>
+            {{ form.description }}
+        </div>
+
+        <!-- Row 3: Content Type and Difficulty -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label for="{{ form.content_type.id_for_label }}" class="form-label">Content Type *</label>
+                {{ form.content_type }}
+            </div>
+            <div class="col-md-6">
+                <label for="{{ form.difficulty.id_for_label }}" class="form-label">Difficulty Level *</label>
+                {{ form.difficulty }}
+            </div>
+        </div>
+
+        <!-- Conditional Input Fields -->
+        <div class="p-4 rounded-3 border bg-light">
+            <p class="fw-bold">Content Source</p>
+            
+            <!-- External Link Field (Visible for Video/Article/Tutorial) -->
+            <div id="link-field" class="mb-3">
+                <label for="{{ form.external_link.id_for_label }}" class="form-label">External Link (YouTube, Blog, etc.)</label>
+                {{ form.external_link }}
+                <div class="form-text text-muted">Copy/paste the full URL here.</div>
+            </div>
+
+            <!-- Uploaded File Field (Visible for PDF/Document) -->
+            <div id="file-field" class="mb-3" style="display: none;">
+                <label for="{{ form.uploaded_file.id_for_label }}" class="form-label">Upload File (PDF/Document)</label>
+                {{ form.uploaded_file }}
+                <div class="form-text text-muted">Upload a secure PDF, DOC, or image file.</div>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+
+        <!-- Buttons -->
+        <div class="d-flex">
+            <button type="submit" class="btn btn-primary btn-lg">Save Resource</button>
+            <a href="{% url 'staff:dashboard_home' %}" class="btn btn-outline-secondary btn-lg ms-3">Cancel</a>
+        </div>
+    </form>
+    
+    <!-- Script to add Bootstrap classes -->
+    <script>
+        document.querySelectorAll('input[type="text"], input[type="url"], input[type="email"], select, textarea, input[type="file"]').forEach(function(field) {
+            if (!field.classList.contains('form-check-input')) {
+                field.classList.add('form-control');
+            }
+        });
+        document.querySelectorAll('select').forEach(function(field) {
+            field.classList.remove('form-control');
+            field.classList.add('form-select');
+        });
+    </script>
+
+    <!-- JavaScript for Conditional Fields -->
+    <script>
+        const contentTypeSelect = document.getElementById('{{ form.content_type.id_for_label }}');
+        const linkField = document.getElementById('link-field');
+        const fileField = document.getElementById('file-field');
+
+        function toggleContentFields() {
+            const selectedValue = contentTypeSelect.value;
+            
+            // Show link for: article, video, tutorial
+            if (['article', 'video', 'tutorial'].includes(selectedValue)) {
+                linkField.style.display = 'block';
+                fileField.style.display = 'none';
+            } 
+            // Show file upload for: pdf
+            else if (selectedValue === 'pdf') {
+                linkField.style.display = 'none';
+                fileField.style.display = 'block';
+            } 
+            // Hide both for safety
+            else {
+                linkField.style.display = 'none';
+                fileField.style.display = 'none';
+            }
+        }
+
+        // Run on load and on change
+        window.addEventListener('load', toggleContentFields);
+        contentTypeSelect.addEventListener('change', toggleContentFields);
+    </script>
+</div>
+{% endblock %}

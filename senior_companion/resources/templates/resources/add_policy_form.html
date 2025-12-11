@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-container p-4 p-md-5">
+    <h1 class="mb-4">{{ title }}</h1>
+    <p class="lead text-muted">Add a new recommended policy template. Users will be able to see this in their "Recommendations" list.</p>
+    
+    <form method="POST" action="">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- Row 1: Name and Provider -->
+        <div class_ ="row mb-3">
+            <div class="col-md-6">
+                <label for="{{ form.policy_name.id_for_label }}" class="form-label">Policy Name</label>
+                {{ form.policy_name }}
+                {% if form.policy_name.errors %}<div class="text-danger small">{{ form.policy_name.errors }}</div>{% endif %}
+            </div>
+            <div class_ ="col-md-6">
+                <label for="{{ form.provider_name.id_for_label }}" class="form-label">Provider Name</label>
+                {{ form.provider_name }}
+                {% if form.provider_name.errors %}<div class="text-danger small">{{ form.provider_name.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- Row 2: Type -->
+        <div class="mb-3">
+            <label for="{{ form.policy_type.id_for_label }}" class="form-label">Policy Type</label>
+            {{ form.policy_type }}
+            {% if form.policy_type.errors %}<div class.="text-danger small">{{ form.policy_type.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Row 3: Description -->
+        <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">Full Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Row 4: Summary -->
+        <div class="mb-3">
+            <label for="{{ form.coverage_summary.id_for_label }}" class="form-label">Simple Summary (for users)</label>
+            {{ form.coverage_summary }}
+            <div class="form-text">A simple, non-technical summary of what this policy covers.</div>
+            {% if form.coverage_summary.errors %}<div class="text-danger small">{{ form.coverage_summary.errors }}</div>{% endif %}
+        </div>
+        
+        <hr class="my-4">
+
+        <!-- Buttons -->
+        <div class="d-flex">
+            <button type="submit" class="btn btn-primary btn-lg">Save Policy</button>
+            <a href="{% url 'staff:dashboard_home' %}" class="btn btn-outline-secondary btn-lg ms-3">Cancel</a>
+        </div>
+    </form>
+    
+    <!-- Script to add Bootstrap classes -->
+    <script>
+        document.querySelectorAll('input[type="text"], input[type="email"], select, textarea').forEach(function(field) {
+            field.classList.add('form-control');
+        });
+    </script>
+</div>
+{% endblock %}
+```
+
+### Step 6: Update the Staff View
+
+Finally, let's tell the `add_insurance` view to use this new template.
+
+* **File to edit:** `resources/views.py`
+* **Action:** Find the `add_insurance` function and **REPLACE** it.
+
+**Replace this old function:**
+```python
+@staff_required
+def add_insurance(request):
+    if request.method == 'POST':
+        form = InsurancePolicyForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'New Insurance Policy added successfully!')
+            return redirect('staff:dashboard_home')
+    else:
+        form = InsurancePolicyForm()
+    
+    return render(request, 'resources/resource_form.html', {
+        'form': form,
+        'title': 'Add a New Insurance Policy'
+    })

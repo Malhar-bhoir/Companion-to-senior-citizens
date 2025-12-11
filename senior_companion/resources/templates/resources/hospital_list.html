@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Hospitals & Doctors{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h1 class="mb-4">Hospitals & Doctors Directory</h1>
+    <p class="lead text-muted mb-4">Find verified health services and filter by critical accessibility needs.</p>
+
+    <!-- Search and Filter Form -->
+    <form method="GET" class="mb-5 p-4 border rounded-3 bg-light">
+        <div class="row g-3 align-items-center">
+            <!-- Search Bar -->
+            <div class="col-md-6">
+                <label for="search-input" class="visually-hidden">Search Hospitals</label>
+                <div class="input-group">
+                    <input type="text" name="q" id="search-input" class="form-control" placeholder="Search by Name or Specialty..." value="{{ query|default:'' }}">
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i> Search</button>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="col-md-6 d-flex justify-content-end">
+                <div class="form-check form-check-inline fs-5">
+                    <input class="form-check-input" type="checkbox" name="filter_geriatrics" id="filter_geriatrics" {% if filter_geriatrics %}checked{% endif %}>
+                    <label class="form-check-label" for="filter_geriatrics">Geriatrics Dept.</label>
+                </div>
+                <div class="form-check form-check-inline fs-5">
+                    <input class="form-check-input" type="checkbox" name="filter_wheelchair" id="filter_wheelchair" {% if filter_wheelchair %}checked{% endif %}>
+                    <label class="form-check-label" for="filter_wheelchair">Wheelchair Access</label>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary ms-3" type="submit">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- <div class="d-flex justify-content-center mb-5">
+        <button id="find-nearby-btn" class="btn btn-danger btn-lg shadow-sm">
+            <i class="fas fa-location-arrow me-2"></i> Find Nearby Emergency Hospitals
+        </button>
+        <p id="location-status" class="ms-3 align-self-center text-muted small" style="display: none;">Finding location...</p>
+    </div> -->
+
+    <div class="d-flex justify-content-center mb-5">
+        {% if user_city %}
+            <!-- Construct the Google Maps URL using the query parameter format -->
+            <a href="https://www.google.com/maps/search/?api=1&query={{ google_maps_address|urlencode }}" 
+               target="_blank" 
+               class="btn btn-danger btn-lg shadow-lg">
+                <i class="fas fa-search-location me-2"></i> Search Nearby Emergency on Google Maps
+            </a>
+            <p class="ms-4 align-self-center text-muted small">
+                Searching near your saved city: <strong>{{ user_city }}</strong>
+            </p>
+        {% else %}
+            <!-- Message if the user hasn't saved a location -->
+            <a href="{% url 'profile' %}" class="btn btn-warning btn-lg shadow-sm">
+                <i class="fas fa-map-marker-alt me-2"></i> Save Your Location in Profile First
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Results List -->
+    <h3 class="mb-3">Found {{ hospitals.count }} {{ hospitals.count|pluralize:"Result,Results" }}</h3>
+
+    <div class="list-group">
+        {% for hospital in hospitals %}
+            <div class="list-group-item list-group-item-action p-4 mb-3 rounded border">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div>
+                        <h4 class="mb-1 text-primary">{{ hospital.name }}</h4>
+                        <p class="mb-1 text-muted">{{ hospital.city }}, {{ hospital.state }} | {{ hospital.phone_number }}</p>
+                    </div>
+                    <!-- View More Button -->
+                    <a href="{% url 'hospital_detail' hospital.id %}" class="btn btn-primary btn-lg">View Details</a>
+                </div>
+                
+                <hr class="my-3">
+                
+                <!-- Accessibility Icons -->
+                <div class="d-flex align-items-center fs-5">
+                    <span class="me-4" title="24 Hour Emergency">
+                        {% if hospital.is_emergency_24h %}<i class="fas fa-ambulance text-danger me-1"></i> 24h E.R.{% else %}<i class="fas fa-times text-muted me-1"></i> E.R. Closed{% endif %}
+                    </span>
+                    <span class="me-4" title="Wheelchair Accessible">
+                        {% if hospital.is_wheelchair_accessible %}<i class="fas fa-wheelchair text-success me-1"></i> Access{% else %}<i class="fas fa-times text-muted me-1"></i> No Access{% endif %}
+                    </span>
+                    <span class="me-4" title="Has Geriatrics Department">
+                        {% if hospital.has_geriatrics_dept %}<i class="fas fa-user-friends text-info me-1"></i> Geriatrics{% else %}<i class="fas fa-times text-muted me-1"></i> No Geriatrics{% endif %}
+                    </span>
+                </div>
+            </div>
+        {% empty %}
+            <div class="list-group-item p-4">
+                <p class="mb-0 fs-5 text-muted">No hospitals matched your search criteria.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-4">&larr; Back to Home</a>
+</div>
+
+<!-- 
+=================================================
+== NEW JAVASCRIPT FOR NEARBY FINDER ==
+=================================================
+-->
+<!-- <script>
+    document.getElementById('find-nearby-btn').addEventListener('click', findNearbyHospitals);
+    const statusElement = document.getElementById('location-status');
+
+    function findNearbyHospitals() {
+        statusElement.style.display = 'block';
+        statusElement.textContent = 'Locating you...';
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(success, error, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            });
+        } else {
+            alert('Geolocation is not supported by your browser.');
+            statusElement.textContent = 'Geolocation not supported.';
+        }
+    }
+
+    function success(position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        
+        statusElement.textContent = 'Location found. Filtering...';
+
+        // NOTE: We cannot directly calculate distance on the client side without
+        // loading the entire database (which is slow).
+        //
+        // The most reliable way to filter is to:
+        // 1. Get the City/State from the coordinates (Reverse Geocoding).
+        // 2. Filter the existing list by City/State and 24/7 Emergency status.
+        //
+        // Since we don't have a reverse geocoding API, we simulate this:
+
+        simulateReverseGeocode(latitude, longitude).then(location => {
+            // Build the URL to filter the results
+            const url = new URL(window.location.href);
+            
+            // Set the query to the user's city/state to find local hospitals
+            url.searchParams.set('q', location.city); 
+            
+            // Ensure only 24/7 hospitals are shown (we must update the view to handle this!)
+            url.searchParams.set('filter_emergency', 'on'); 
+
+            window.location.href = url.toString();
+        });
+    }
+
+    function error(err) {
+        console.warn(`ERROR(${err.code}): ${err.message}`);
+        statusElement.textContent = `Error: Location failed. Please try searching manually.`;
+    }
+
+    // MOCK function to simulate getting the city from coordinates
+    function simulateReverseGeocode(lat, lon) {
+        // In a real app, you would use Google Maps API or OpenStreetMap API here.
+        // For this demo, we mock a response based on common cities.
+        return new Promise(resolve => {
+            setTimeout(() => {
+                // Mock: If user is generally North, assume they are near a large city
+                // This is a placeholder that needs to be replaced by a live API in a real deployment
+                resolve({ city: 'Mumbai', state: 'Maharashtra' }); 
+            }, 1000);
+        });
+    }
+</script> -->
+
+{% endblock %}

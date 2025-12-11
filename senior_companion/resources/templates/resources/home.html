@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome Home{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    {% if user.is_authenticated %}
+        <h1 class="mb-3">Welcome, {{ user.email|default:user.username }}!</h1>
+        
+        {% if not user.is_staff %}
+            <!-- 
+                This is a new, smart message.
+                It checks if the user is a senior AND has not selected any hobbies yet.
+            -->
+            {% if not user.profile.hobbies.all %}
+                <div class="alert alert-info" role="alert">
+                    To get personalized recommendations, visit your <a href="{% url 'profile' %}" class="alert-link">My Profile</a> page and select your hobbies!
+                </div>
+            {% endif %}
+            <p class="lead text-muted mb-4">This is your personalized dashboard. Find recommended events and resources just for you.</p>
+        {% else %}
+            <!-- Message for staff -->
+            <p class="lead text-muted mb-4">You are logged in as a Staff member. Use the "Staff Dashboard" link to manage content.</p>
+        {% endif %}
+        
+    {% else %}
+        <!-- Message for logged-out guests -->
+        <h1 class="mb-3">Welcome to Senior Companion</h1>
+        <p class="lead text-muted mb-4">Your one-stop place for connection, resources, and health.</p>
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Get Started</a>
+        <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg">Log In</a>
+    {% endif %}
+
+    <!-- 
+    =================================================
+    == NEW PERSONALIZED CONTENT BLOCKS ==
+    =================================================
+    This code checks if the 'personalized_events' or
+    'personalized_learning' variables exist (sent from the view).
+    If they do, it displays them.
+    -->
+    
+    {% if personalized_events %}
+        <hr class="my-4 my-md-5">
+        <h3 class="mb-3">Events For You</h3>
+        <div class="list-group list-group-flush mt-4">
+            {% for event in personalized_events %}
+                <div class="list-group-item list-group-item-action p-4 d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <!-- Icon: Calendar -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-calendar-event text-primary" viewBox="0 0 16 16">
+                            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">{{ event.name }}</h5>
+                        <p class="mb-1 text-muted">{{ event.description|truncatewords:20 }}</p>
+                        <!-- We use the 'date' filter to format the date nicely -->
+                        <small class="text-primary"><strong>Date:</strong> {{ event.event_date|date:"F d, Y" }}</small>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    {% if personalized_learning %}
+        <hr class="my-4">
+        <h3 class="mb-3">Learning For You</h3>
+        <div class="list-group list-group-flush mt-4">
+            {% for resource in personalized_learning %}
+                <div class="list-group-item list-group-item-action p-4 d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <!-- Icon: Book -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-book-half text-primary" viewBox="0 0 16 16">
+                            <path d="M8.5 2.687c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388 1.17.953.713 1.04 1.76.082 2.748l-.005.007-.002.004-.004.007-.007.01-.01.01-.01.01-.01.01H16V2.687H8.5zm0 10.035V5.368H0v7.354c.6-1.03 1.4-1.8 2.4-2.36 1.1- .6 2.4- .83 3.9- .78 1.4.05 2.7.22 3.8.5.9.23 1.7.5 2.4.85.7.35 1.3.7 1.9 1.1V16H0v-.002H.5v.002H0v-.002H.5V16H0v-.002H.5v.002zM0 5.368A.5.5 0 0 1 .5 4.87V1.5a.5.5 0 0 1 .5-.5h11.088c1.373 0 2.148.67 2.633 1.25.522.613.682 1.442.368 2.302L15.35 6.09c-.328.86-.92 1.62-1.74 2.15-.81.53-1.85.8-3.04.75-1.14-.04-2.2-.16-3.1-.38-.8-.2-1.5-.4-2.1-.6-.6-.2-1.1-.3-1.5-.4-.4-.1-.7-.1-1-.1H0v.868z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">{{ resource.title }}</h5>
+                        <p class="mb-1 text-muted">{{ resource.description|truncatewords:20 }}</p>
+                        <small class="text-primary"><strong>Category:</strong> {{ resource.category.name }}</small>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <!-- == END OF NEW BLOCKS == -->
+
+
+    <hr class="my-4 my-md-5">
+
+    <h3>Explore Your Community</h3>
+    <p class="text-muted">Select a category below to get started.</p>
+
+    <!-- This is your existing "Explore" section, no changes needed -->
+    <div class="list-group list-group-flush mt-4">
+        
+        <!-- Places to Visit -->
+        <a href="{% url 'place_list' %}" class="list-group-item list-group-item-action p-4 d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+                <!-- Icon: Map Pin -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-geo-alt-fill text-primary" viewBox="0 0 16 16">
+                    <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                </svg>
+            </div>
+            <div>
+                <h5 class="mb-1">Places to Visit</h5>
+                <p class="mb-0 text-muted">Find local parks, museums, and community centers.</p>
+            </div>
+        </a>
+
+        <!-- Learning -->
+        <a href="{% url 'learning_list' %}" class="list-group-item list-group-item-action p-4 d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+                <!-- Icon: Book -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-book-half text-primary" viewBox="0 0 16 16">
+                    <path d="M8.5 2.687c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388 1.17.953.713 1.04 1.76.082 2.748l-.005.007-.002.004-.004.007-.007.01-.01.01-.01.01-.01.01H16V2.687H8.5zm0 10.035V5.368H0v7.354c.6-1.03 1.4-1.8 2.4-2.36 1.1- .6 2.4- .83 3.9- .78 1.4.05 2.7.22 3.8.5.9.23 1.7.5 2.4.85.7.35 1.3.7 1.9 1.1V16H0v-.002H.5v.002H0v-.002H.5V16H0v-.002H.5v.002zM0 5.368A.5.5 0 0 1 .5 4.87V1.5a.5.5 0 0 1 .5-.5h11.088c1.373 0 2.148.67 2.633 1.25.522.613.682 1.442.368 2.302L15.35 6.09c-.328.86-.92 1.62-1.74 2.15-.81.53-1.85.8-3.04.75-1.14-.04-2.2-.16-3.1-.38-.8-.2-1.5-.4-2.1-.6-.6-.2-1.1-.3-1.5-.4-.4-.1-.7-.1-1-.1H0v.868z"/>
+                </svg>
+            </div>
+            <div>
+                <h5 class="mb-1">Learn Something New</h5>
+                <p class="mb-0 text-muted">Browse tutorials on technology, art, health, and more.</p>
+            </div>
+        </a>
+
+        <!-- Hospitals -->
+        <a href="{% url 'hospital_list' %}" class="list-group-item list-group-item-action p-4 d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+                <!-- Icon: Hospital -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-hospital text-primary" viewBox="0 0 16 16">
+                    <path d="M8.5 5.034v1.1l.953.55.5.867L9 7.087l.16.278.5.866.953.55v1.1l-1.453-.838-.5-.867-.16-.277-.16.277-.5.867L7 9.615v-1.1l.953-.55.5-.867L9 7.087l.16-.278.5-.866.953-.55v-1.1l-1.453.838-.5.867-.16.277-.16-.277-.5.867L7 6.135v-1.1l.953.55.5.866.16.278.16-.278.5-.866zM13.25 9a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5zM13 11.25a.25.25 0 0 1 .25-.25h.5a.25.25 0 0 1 .25.25v.5c0 .138-.112.25-.25.25h-.5a.25.25 0 0 1-.25-.25v-.5zm.25 1.75a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5zm-11-4a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5A.25.25 0 0 0 3 9.75v-.5A.25.25 0 0 0 2.75 9h-.5zm.25 1.75a.25.25 0 0 1 .25-.25h.5a.25.25 0 0 1 .25.25v.5c0 .138-.112.25-.25.25h-.5a.25.25 0 0 1-.25-.25v-.5zm.25 1.75a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25h-.5z"/>
+                    <path d="M5 1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V1zM2.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-13a.5.5 0 0 0-.5-.5H11V2a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v-1H2.5z"/>
+                </svg>
+            </div>
+            <div>
+                <h5 class="mb-1">Find Hospitals & Doctors</h5>
+                <p class="mb-0 text-muted">Access your local health and wellness resources.</p>
+            </div>
+        </a>
+
+        <!-- Insurance -->
+        <a href="{% url 'insurance_hub' %}" class="list-group-item list-group-item-action p-4 d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+                <!-- Icon: Shield -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-shield-check text-primary" viewBox="0 0 16 16">
+                    <path d="M5.338 1.59a61.44 61.44 0 0 0-2.837.856.481.481 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.725 10.725 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.056.255.098.386.123.134.026.275.042.42.042h.001c.145 0 .286-.016.42-.042.131-.025.266-.067.386-.123.241-.113.547-.29.893-.533a10.726 10.726 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.95- .3-1.882-.626-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 3.163 1.04 1.08.456 1.996 1.135 2.67 2.13C15.163 5.04 16 7.42 16 10c0 .99-.24 1.952-.681 2.847l-.04.084c-.397 1.01-.92 1.9-1.585 2.653a11.96 11.96 0 0 1-2.418 2.247c-.42.31-.8.5-1.125.563-.317.06-.6.09-.84.09h-.001c-.24 0-.523-.03-.84-.09-.326-.063-.705-.253-1.125-.563a11.96 11.96 0 0 1-2.418-2.247c-.665-.753-1.188-1.643-1.585-2.654l-.04-.084C.24 11.952 0 10.99 0 10c0-2.58 1.08-5.015 2.208-6.27C2.882 2.735 3.797 2.056 4.877 1.6s2.053-.74 3.163-1.04z"/>
+                    <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h5 class="mb-1">Explore Insurance Policies</h5>
+                <p class="mb-0 text-muted">Understand your options and find policies.</p>
+            </div>
+        </a>
+
+    </div>
+</div>
+{% endblock %}

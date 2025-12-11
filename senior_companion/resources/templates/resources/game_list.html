@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Game Library{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h1 class="mb-4">Game Library</h1>
+    <p class="lead text-muted mb-4">Challenge your brain and have fun with games designed for memory and focus.</p>
+
+    <div class="row">
+        {% for game in games %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-2 border-primary">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-primary">{{ game.name }}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{ game.description }}</p>
+                    
+                    <div class="mt-2 mb-3 small">
+                        <span class="badge bg-secondary me-2">{{ game.get_game_type_display }}</span>
+                        <span class="badge bg-{% if game.difficulty == 'easy' %}success{% elif game.difficulty == 'medium' %}warning text-dark{% else %}danger{% endif %}">
+                            {{ game.get_difficulty_display }}
+                        </span>
+                    </div>
+
+                    <!-- Accessibility Tags -->
+                    <div class="small mb-3">
+                        {% if game.is_high_contrast %}<span class="text-success me-2">&#10003; High Contrast</span>{% endif %}
+                        {% if game.is_large_text %}<span class="text-success me-2">&#10003; Large Text</span>{% endif %}
+                    </div>
+
+                    <!-- Link to Play -->
+                    <a href="{{ game.game_url }}" class="btn btn-primary mt-auto">Play Game <i class="fas fa-gamepad ms-2"></i></a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">No games have been added yet. Check back soon!</p>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-4">&larr; Back to Home</a>
+</div>
+{% endblock %}
